@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Insurance Claims | Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <main class="login-container">
+        <div class="logo">🛡️</div>
+
+        <h1>Secure Insurance Claims</h1>
+        <p class="subtitle">Sign in to manage your insurance claims</p>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="Enter your email"
+                    autocomplete="username"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <div class="forgot-password">
+                <a href="#" id="forgotPassword">Forgot password?</a>
+            </div>
+
+            <button type="submit" id="loginButton">
+                Sign In
+            </button>
+
+            <p id="message" role="status" aria-live="polite"></p>
+        </form>
+
+        <p class="security-note">
+            Your information deserves secure protection.
+        </p>
+
+        <footer>
+            &copy; 2026 Secure Insurance Claims
+        </footer>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
