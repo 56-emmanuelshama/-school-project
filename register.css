@@ -1,0 +1,163 @@
+
+/* General page styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 25px 15px;
+    background: linear-gradient(135deg, #0b1f3a, #174a7e);
+    color: #263445;
+}
+
+/* Registration heading */
+h2 {
+    width: 100%;
+    max-width: 430px;
+    padding: 30px 30px 10px;
+    background: #ffffff;
+    border-radius: 14px 14px 0 0;
+    text-align: center;
+    color: #12345a;
+    font-size: 28px;
+}
+
+body > p:first-of-type {
+    width: 100%;
+    max-width: 430px;
+    padding: 0 30px 25px;
+    background: #ffffff;
+    text-align: center;
+    color: #667085;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+/* Registration form card */
+#registerForm {
+    width: 100%;
+    max-width: 430px;
+    padding: 10px 30px 25px;
+    background: #ffffff;
+}
+
+/* Labels */
+#registerForm label {
+    display: block;
+    margin-bottom: 8px;
+    color: #344054;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Input fields */
+#registerForm input {
+    display: block;
+    width: 100%;
+    padding: 13px 14px;
+    margin-bottom: 20px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #101828;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#registerForm input::placeholder {
+    color: #98a2b3;
+}
+
+#registerForm input:focus {
+    border-color: #1769aa;
+    box-shadow: 0 0 0 3px rgba(23, 105, 170, 0.13);
+}
+
+/* Register button */
+#registerForm button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 8px;
+    background: #12345a;
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+#registerForm button:hover {
+    background: #1769aa;
+}
+
+#registerForm button:active {
+    transform: scale(0.98);
+}
+
+/* Registration status message */
+#message {
+    margin-top: 15px;
+    text-align: center;
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+/* Login link section */
+body > p:last-of-type {
+    width: 100%;
+    max-width: 430px;
+    padding: 0 30px 30px;
+    background: #ffffff;
+    border-radius: 0 0 14px 14px;
+    text-align: center;
+    color: #667085;
+    font-size: 14px;
+}
+
+body > p:last-of-type a {
+    color: #1769aa;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+body > p:last-of-type a:hover {
+    text-decoration: underline;
+}
+
+/* Keyboard accessibility */
+#registerForm button:focus-visible,
+a:focus-visible {
+    outline: 3px solid #65b7ff;
+    outline-offset: 3px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 480px) {
+    h2 {
+        padding: 25px 20px 10px;
+        font-size: 24px;
+    }
+
+    body > p:first-of-type {
+        padding: 0 20px 20px;
+    }
+
+    #registerForm {
+        padding: 10px 20px 25px;
+    }
+
+    body > p:last-of-type {
+        padding: 0 20px 25px;
+    }
+}

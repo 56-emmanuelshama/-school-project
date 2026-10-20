@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,6 +21,7 @@
                 <input
                     type="email"
                     id="email"
+                    name="email"
                     placeholder="Enter your email"
                     autocomplete="username"
                     required
@@ -32,6 +33,7 @@
                 <input
                     type="password"
                     id="password"
+                    name="password"
                     placeholder="Enter your password"
                     autocomplete="current-password"
                     required
@@ -49,6 +51,13 @@
             <p id="message" role="status" aria-live="polite"></p>
         </form>
 
+        <div class="register-section">
+            <p>Don't have an account yet?</p>
+            <a href="register.html" class="register-button">
+                Create an Account
+            </a>
+        </div>
+
         <p class="security-note">
             Your information deserves secure protection.
         </p>
@@ -58,6 +67,9 @@
         </footer>
     </main>
 
-    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="index.js"></script>
+
 </body>
 </html>
+```
