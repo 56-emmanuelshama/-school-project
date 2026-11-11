@@ -12,6 +12,8 @@ const supabaseClient = window.supabase.createClient(
 );
 
 
+let currentAdminId = null;
+
 // ==================================
 // PAGE ELEMENTS
 // ==================================
@@ -36,6 +38,7 @@ async function checkAdminAccess() {
     }
 
     const user = sessionData.session.user;
+   currentAdminId = user.id;
 
     const { data: profile, error: profileError } =
         await supabaseClient
@@ -191,6 +194,365 @@ async function loadRecentClaims() {
 
 
 // ==================================
+// LOAD AND MANAGE USERS
+// ==================================
+
+async function loadUsers() {
+
+    const usersTable = document.getElementById("usersTable");
+    const message = document.getElementById("userManagementMessage");
+
+    usersTable.replaceChildren();
+    message.textContent = "Loading users...";
+
+    const { data: users, error } = await supabaseClient
+        .from("profiles")
+        .select("id, full_name, role, created_at")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        message.textContent = "Unable to load users.";
+        console.error("User loading error:", error);
+        return;
+    }
+
+    if (!users || users.length === 0) {
+        message.textContent = "No registered users found.";
+        return;
+    }
+
+    users.forEach(user => {
+
+        const row = document.createElement("tr");
+
+        const nameCell = document.createElement("td");
+        nameCell.textContent = user.full_name || "Unnamed user";
+
+        const roleCell = document.createElement("td");
+
+        const roleSelect = document.createElement("select");
+
+        ["customer", "claims_officer", "admin"].forEach(role => {
+
+            const option = document.createElement("option");
+
+            option.value = role;
+            option.textContent = role.replace("_", " ");
+
+            if (user.role === role) {
+                option.selected = true;
+            }
+
+            roleSelect.appendChild(option);
+        });
+
+        roleCell.appendChild(roleSelect);
+
+        const dateCell = document.createElement("td");
+
+        dateCell.textContent = user.created_at
+            ? new Date(user.created_at).toLocaleDateString()
+            : "N/A";
+
+        const actionCell = document.createElement("td");
+
+        const saveButton = document.createElement("button");
+
+        saveButton.textContent = "Save Role";
+        saveButton.type = "button";
+
+        saveButton.addEventListener("click", async () => {
+
+            const newRole = roleSelect.value;
+
+            if (!["customer", "claims_officer", "admin"].includes(newRole)) {
+                alert("Invalid role selected.");
+                return;
+            }
+
+            if (user.id === currentAdminId) {
+                alert("You cannot change your own administrator role here.");
+                return;
+            }
+
+            if (newRole === user.role) {
+                alert("This user already has that role.");
+                return;
+            }
+
+            saveButton.disabled = true;
+            saveButton.textContent = "Saving...";
+
+            const { error: updateError } = await supabaseClient
+                .from("profiles")
+                .update({
+                    role: newRole,
+                    updated_at: new Date().toISOString()
+                })
+                .eq("id", user.id);
+
+            if (updateError) {
+
+                alert("Unable to update user role.");
+
+                console.error("Role update error:", updateError);
+
+                saveButton.disabled = false;
+                saveButton.textContent = "Save Role";
+
+                return;
+            }
+
+            alert("User role updated successfully!");
+
+            await loadUsers();
+        });
+
+                actionCell.appendChild(saveButton);
+
+        row.append(
+            nameCell,
+            roleCell,
+            dateCell,
+            actionCell
+        );
+
+        usersTable.appendChild(row);
+    });
+
+    message.textContent = `Showing ${users.length} registered users.`;
+}
+
+// ==================================
+// REFRESH USERS
+// ==================================
+
+document.getElementById("refreshUsersButton")
+    .addEventListener("click", loadUsers);
+ // ==================================
+ // CLAIMS MANAGEMENT
+ // ==================================
+
+async function loadClaimsManagement() {
+
+    const table = document.getElementById("claimsManagementTable");
+    const message = document.getElementById("claimsManagementMessage");
+
+    table.replaceChildren();
+    message.textContent = "Loading claims...";
+
+    const { data: claims, error } = await supabaseClient
+        .from("claims")
+        .select("id, claim_number, customer_id, title, claim_amount, status, created_at")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        message.textContent = "Unable to load claims.";
+        console.error("Claims management error:", error);
+        return;
+    }
+
+    if (!claims || claims.length === 0) {
+        message.textContent = "No insurance claims found.";
+        return;
+    }
+
+    claims.forEach(claim => {
+
+        const row = document.createElement("tr");
+
+        function createCell(value) {
+            const cell = document.createElement("td");
+            cell.textContent = value ?? "N/A";
+            return cell;
+        }
+
+        const claimNumberCell = createCell(claim.claim_number);
+        const customerCell = createCell(claim.customer_id);
+        const titleCell = createCell(claim.title);
+
+        const amountCell = createCell(
+            Number(claim.claim_amount || 0).toLocaleString()
+        );
+
+        const statusCell = document.createElement("td");
+        const statusSelect = document.createElement("select");
+
+        const statuses = [
+            "submitted",
+            "under_review",
+            "approved",
+            "rejected",
+            "settled"
+        ];
+
+        statuses.forEach(status => {
+            const option = document.createElement("option");
+            option.value = status;
+            option.textContent = status.replace("_", " ");
+
+            if (claim.status === status) {
+                option.selected = true;
+            }
+
+            statusSelect.appendChild(option);
+        });
+
+        statusCell.appendChild(statusSelect);
+
+        const dateCell = createCell(
+            claim.created_at
+                ? new Date(claim.created_at).toLocaleDateString()
+                : "N/A"
+        );
+
+        const actionCell = document.createElement("td");
+        const saveButton = document.createElement("button");
+
+        saveButton.type = "button";
+        saveButton.textContent = "Update";
+
+        saveButton.addEventListener("click", async () => {
+
+            const newStatus = statusSelect.value;
+
+            if (newStatus === claim.status) {
+                alert("No status change has been made.");
+                return;
+            }
+
+            saveButton.disabled = true;
+            saveButton.textContent = "Updating...";
+
+            const { error: updateError } = await supabaseClient
+                .from("claims")
+                .update({
+                    status: newStatus,
+                    updated_at: new Date().toISOString()
+                })
+                .eq("id", claim.id);
+
+            if (updateError) {
+                alert("Unable to update claim status.");
+                console.error("Claim update error:", updateError);
+
+                saveButton.disabled = false;
+                saveButton.textContent = "Update";
+                return;
+            }
+
+            alert("Claim status updated successfully!");
+
+            await Promise.all([
+                loadClaimsManagement(),
+                loadDashboardStats(),
+                loadRecentClaims()
+            ]);
+        });
+
+        actionCell.appendChild(saveButton);
+
+        row.append(
+            claimNumberCell,
+            customerCell,
+            titleCell,
+            amountCell,
+            statusCell,
+            dateCell,
+            actionCell
+        );
+
+        table.appendChild(row);
+    });
+
+    message.textContent = `Showing ${claims.length} insurance claims.`;
+}
+
+document.getElementById("refreshClaimsButton")
+    .addEventListener("click", async function() {
+        await Promise.all([
+            loadClaimsManagement(),
+            loadDashboardStats(),
+            loadRecentClaims()
+        ]);
+    });
+// ==================================
+// REFRESH CLAIMS
+// ==================================
+
+// ==================================
+// LOAD AUDIT LOGS
+// ==================================
+
+async function loadAuditLogs() {
+
+    const table = document.getElementById("auditLogsTable");
+    const message = document.getElementById("auditMessage");
+
+    table.replaceChildren();
+    message.textContent = "Loading audit logs...";
+
+    const { data: logs, error } = await supabaseClient
+        .from("claim_audit_log")
+        .select("id, claim_id, changed_by, old_status, new_status, changed_at")
+        .order("changed_at", { ascending: false })
+        .limit(100);
+
+    if (error) {
+        message.textContent = "Unable to load audit logs.";
+        console.error("Audit log error:", error);
+        return;
+    }
+
+    if (!logs || logs.length === 0) {
+        message.textContent = "No audit activity recorded yet.";
+        return;
+    }
+
+    logs.forEach(log => {
+
+        const row = document.createElement("tr");
+
+        function createCell(value) {
+            const cell = document.createElement("td");
+            cell.textContent = value || "N/A";
+            return cell;
+        }
+
+        row.append(
+            createCell(log.claim_id),
+            createCell(log.changed_by),
+            createCell(log.old_status),
+            createCell(log.new_status),
+            createCell(
+                log.changed_at
+                    ? new Date(log.changed_at).toLocaleString()
+                    : "N/A"
+            )
+        );
+
+        table.appendChild(row);
+    });
+
+    message.textContent = `Showing ${logs.length} audit records.`;
+}
+
+
+// ==================================
+// REFRESH AUDIT LOGS
+// ==================================
+
+document.getElementById("refreshAuditButton")
+    .addEventListener("click", loadAuditLogs);
+
+// ==================================
+// REFRESH USERS
+// ==================================
+
+document.getElementById("refreshUsersButton")
+    .addEventListener("click", loadUsers);
+
+// ==================================
 // SIDEBAR NAVIGATION
 // ==================================
 
@@ -256,11 +618,13 @@ async function initializeDashboard() {
     const authorized = await checkAdminAccess();
 
     if (!authorized) return;
-
-    await Promise.all([
-        loadDashboardStats(),
-        loadRecentClaims()
-    ]);
+     await Promise.all([
+    loadDashboardStats(),
+    loadRecentClaims(),
+    loadUsers(),
+    loadClaimsManagement(),
+    loadAuditLogs()
+]);
 }
 
 initializeDashboard();

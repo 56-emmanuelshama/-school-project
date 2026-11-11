@@ -152,17 +152,80 @@
             </section>
 
             <!-- OTHER SECTIONS -->
-            <section id="users" class="content-card placeholder-section">
-                <h2>User Management</h2>
-                <p>Manage customers, claims officers and administrator accounts.</p>
-                <p class="coming-soon">User management module – Coming next.</p>
-            </section>
+           
+<section id="users" class="content-card dashboard-section">
+    <div class="section-heading">
+        <div>
+            <h2>User Management</h2>
+            <p>View registered users and manage their system roles.</p>
+        </div>
+        <button id="refreshUsersButton" type="button">
+            Refresh Users
+        </button>
+    </div>
 
-            <section id="claims" class="content-card placeholder-section">
-                <h2>Claims Management</h2>
-                <p>Review, monitor and manage submitted insurance claims.</p>
-                <p class="coming-soon">Claims management module – Coming next.</p>
-            </section>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Full Name</th>
+                    <th>User Role</th>
+                    <th>Date Registered</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody id="usersTable">
+                <tr>
+                    <td colspan="4">Loading users...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p id="userManagementMessage"></p>
+</section>
+
+            <
+<section id="claims" class="content-card dashboard-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>Claims Management</h2>
+            <p>Review and manage insurance claims submitted by customers.</p>
+        </div>
+
+        <button id="refreshClaimsButton" type="button">
+            Refresh Claims
+        </button>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Claim Number</th>
+                    <th>Customer ID</th>
+                    <th>Claim Type</th>
+                    <th>Amount (KSh)</th>
+                    <th>Status</th>
+                    <th>Date Submitted</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody id="claimsManagementTable">
+                <tr>
+                    <td colspan="7">Loading claims...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p id="claimsManagementMessage"></p>
+
+</section>
+
 
             <section id="security" class="content-card placeholder-section">
                 <h2>Security & MFA</h2>
@@ -170,11 +233,43 @@
                 <p class="coming-soon">Security module – Coming next.</p>
             </section>
 
-            <section id="audit" class="content-card placeholder-section">
-                <h2>Audit Logs</h2>
-                <p>Monitor activities performed within the system.</p>
-                <p class="coming-soon">Audit module – Coming next.</p>
-            </section>
+<section id="audit" class="content-card dashboard-section">
+
+    <div class="section-heading">
+        <div>
+            <h2>System Audit Logs</h2>
+            <p>Monitor changes made to insurance claims.</p>
+        </div>
+
+        <button id="refreshAuditButton" type="button">
+            Refresh Logs
+        </button>
+    </div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Claim ID</th>
+                    <th>Changed By</th>
+                    <th>Old Status</th>
+                    <th>New Status</th>
+                    <th>Date Changed</th>
+                </tr>
+            </thead>
+
+            <tbody id="auditLogsTable">
+                <tr>
+                    <td colspan="5">Loading audit logs...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p id="auditMessage"></p>
+
+</section>
+
 
             <section id="profile" class="content-card placeholder-section">
                 <h2>Administrator Profile</h2>
@@ -187,8 +282,7 @@
 
         </main>
     </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="admin.js"></script>
 
 </body>
