@@ -1,67 +1,86 @@
 
-const SUPABASE_URL = "https://wqszwijxuiomyrguyhrx.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
-
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
-
+// ==========================================
+// LOGIN AND ROLE-BASED REDIRECTION
+// ==========================================
 
 
 const SUPABASE_URL = "https://wqszwijxuiomyrguyhrx.supabase.co";
+
+// Keep your actual existing Supabase publishable key here
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_1FqMpDgBFBn8oMEi-M5c9g_-wJjQ5z4";
 
 const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
 );
 
 const loginForm = document.getElementById("loginForm");
 const message = document.getElementById("message");
-const forgotPassword = document.getElementById("forgotPassword");
+const loginButton = document.getElementById("loginButton");
 
-loginForm.addEventListener("submit", async function (event) {
-  event.preventDefault();
+loginForm.addEventListener("submit", async function(event) {
 
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+    event.preventDefault();
 
-  if (!email || !password) {
-    message.textContent = "Please enter your email and password.";
-    return;
-  }
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
 
-  message.textContent = "Signing in...";
+    message.textContent = "Signing in...";
+    loginButton.disabled = true;
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email: email,
-    password: password
-  });
+    try {
 
-  if (error) {
-    message.textContent = error.message;
-    return;
-  }
+        // 1. Authenticate user with Supabase
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+        });
 
-  message.textContent = "Login successful! Welcome.";
+        if (error) {
+            throw error;
+        }
 
-  console.log("Signed-in user:", data.user.id);
-});
+        // 2. Retrieve user role
+        const { data: profile, error: profileError } = await supabaseClient
+            .from("profiles")
+            .select("role")
+            .eq("id", data.user.id)
+            .single();
 
-forgotPassword.addEventListener("click", async function (event) {
-  event.preventDefault();
+        if (profileError || !profile) {
+            await supabaseClient.auth.signOut();
+            throw new Error("Your user profile could not be found.");
+        }
 
-  const email = document.getElementById("email").value.trim();
+        // 3. Redirect according to role
+        if (profile.role === "customer") {
 
-  if (!email) {
-    message.textContent = "Enter your email first to reset your password.";
-    return;
-  }
+            window.location.replace("customer.html");
 
-  const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+        } else if (profile.role === "admin") {
 
-  message.textContent = error
-    ? error.message
-    : "If an account exists, a password-reset email will be sent.";
+            window.location.replace("admin.html");
+
+        } else if (profile.role === "claims_officer") {
+
+            window.location.replace("claims-officer.html");
+
+        } else {
+
+            await supabaseClient.auth.signOut();
+            throw new Error("Your account has an invalid role.");
+
+        }
+
+    } catch (error) {
+
+        console.error("Login error:", error);
+        message.textContent = error.message;
+
+    } finally {
+
+        loginButton.disabled = false;
+
+    }
+
 });

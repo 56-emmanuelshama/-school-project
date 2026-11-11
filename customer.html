@@ -1,0 +1,102 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard | Secure Insurance Claims</title>
+    <link rel="stylesheet" href="customer.css">
+</head>
+<body>
+
+    <header class="topbar">
+        <h2>🛡️ Secure Insurance Claims</h2>
+        <button id="logoutButton">Logout</button>
+    </header>
+
+    <main class="container">
+        <section class="welcome">
+            <h1>Customer Dashboard</h1>
+            <p>Welcome, <span id="customerName">Customer</span></p>
+            <p id="customerEmail"></p>
+        </section>
+
+        <section class="summary">
+            <div class="stat-card">
+                <h3>Total Claims</h3>
+                <p id="totalClaims">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Pending</h3>
+                <p id="pendingClaims">0</p>
+            </div>
+            <div class="stat-card">
+                <h3>Approved</h3>
+                <p id="approvedClaims">0</p>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Submit a New Claim</h2>
+
+            <form id="claimForm">
+                <label for="claimType">Claim Category</label>
+                <select id="claimType" required>
+                    <option value="">Select category</option>
+                    <option value="Vehicle Insurance">Vehicle Insurance</option>
+                    <option value="Medical Insurance">Medical Insurance</option>
+                </select>
+
+                <label for="claimAmount">Claim Amount (KSh)</label>
+                <input
+                    type="number"
+                    id="claimAmount"
+                    min="1"
+                    step="0.01"
+                    required
+                >
+
+                <label for="description">Claim Description</label>
+                <textarea
+                    id="description"
+                    rows="4"
+                    placeholder="Describe what happened..."
+                    required
+                ></textarea>
+
+                <button type="submit" id="submitButton">
+                    Submit Claim
+                </button>
+
+                <p id="message" role="status"></p>
+            </form>
+        </section>
+
+        <section class="panel">
+            <h2>My Claims</h2>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Claim Number</th>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody id="claimsTable">
+                        <tr>
+                            <td colspan="5">Loading claims...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="customer.js"></script>
+</body>
+</html>

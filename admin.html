@@ -1,0 +1,195 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Dashboard | Secure Insurance Claims</title>
+
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+    <div class="admin-layout">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-icon">🛡️</span>
+                <div>
+                    <h2>Secure Claims</h2>
+                    <small>Administration</small>
+                </div>
+            </div>
+
+            <nav>
+                <p class="nav-heading">MAIN MENU</p>
+
+                <a href="#dashboard" class="nav-link active">
+                    <span>▦</span> Dashboard
+                </a>
+
+                <a href="#users" class="nav-link">
+                    <span>♙</span> User Management
+                </a>
+
+                <a href="#claims" class="nav-link">
+                    <span>▤</span> Claims Management
+                </a>
+
+                <p class="nav-heading">SECURITY</p>
+
+                <a href="#security" class="nav-link">
+                    <span>♢</span> Security & MFA
+                </a>
+
+                <a href="#audit" class="nav-link">
+                    <span>◷</span> Audit Logs
+                </a>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <a href="#profile" class="nav-link">
+                    <span>♙</span> My Profile
+                </a>
+
+                <button id="logoutButton" class="logout-button">
+                    ⇥ Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content">
+
+            <header class="topbar">
+                <div>
+                    <h1>Administrator Dashboard</h1>
+                    <p>Manage and monitor your insurance claims system.</p>
+                </div>
+
+                <div class="admin-info">
+                    <div class="avatar">A</div>
+                    <div>
+                        <strong id="adminName">Administrator</strong>
+                        <small>System Administrator</small>
+                    </div>
+                </div>
+            </header>
+
+            <!-- DASHBOARD -->
+            <section id="dashboard" class="dashboard-section">
+
+                <div class="welcome">
+                    <h2>Welcome back, Administrator!</h2>
+                    <p>Here is an overview of your system activity.</p>
+                </div>
+
+                <div class="stats-grid">
+
+                    <div class="stat-card">
+                        <span class="stat-icon">♙</span>
+                        <p>Total Users</p>
+                        <h2 id="totalUsers">--</h2>
+                        <small>Registered accounts</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-icon">▤</span>
+                        <p>Total Claims</p>
+                        <h2 id="totalClaims">--</h2>
+                        <small>All submitted claims</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-icon">◷</span>
+                        <p>Pending Claims</p>
+                        <h2 id="pendingClaims">--</h2>
+                        <small>Awaiting review</small>
+                    </div>
+
+                    <div class="stat-card">
+                        <span class="stat-icon">✓</span>
+                        <p>Approved Claims</p>
+                        <h2 id="approvedClaims">--</h2>
+                        <small>Approved claims</small>
+                    </div>
+
+                </div>
+
+                <!-- RECENT CLAIMS -->
+                <div class="content-card">
+                    <div class="section-heading">
+                        <div>
+                            <h2>Recent Insurance Claims</h2>
+                            <p>Latest claims submitted to the system.</p>
+                        </div>
+
+                        <a href="#claims">View all</a>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Claim Number</th>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                    <th>Date Submitted</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="recentClaims">
+                                <tr>
+                                    <td colspan="4">Loading claims...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- OTHER SECTIONS -->
+            <section id="users" class="content-card placeholder-section">
+                <h2>User Management</h2>
+                <p>Manage customers, claims officers and administrator accounts.</p>
+                <p class="coming-soon">User management module – Coming next.</p>
+            </section>
+
+            <section id="claims" class="content-card placeholder-section">
+                <h2>Claims Management</h2>
+                <p>Review, monitor and manage submitted insurance claims.</p>
+                <p class="coming-soon">Claims management module – Coming next.</p>
+            </section>
+
+            <section id="security" class="content-card placeholder-section">
+                <h2>Security & MFA</h2>
+                <p>Monitor multi-factor authentication and account security.</p>
+                <p class="coming-soon">Security module – Coming next.</p>
+            </section>
+
+            <section id="audit" class="content-card placeholder-section">
+                <h2>Audit Logs</h2>
+                <p>Monitor activities performed within the system.</p>
+                <p class="coming-soon">Audit module – Coming next.</p>
+            </section>
+
+            <section id="profile" class="content-card placeholder-section">
+                <h2>Administrator Profile</h2>
+                <p id="profileEmail">Loading administrator details...</p>
+            </section>
+
+            <footer>
+                © 2026 Secure Insurance Claims Management System
+            </footer>
+
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="admin.js"></script>
+
+</body>
+</html>
