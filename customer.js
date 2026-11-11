@@ -157,6 +157,8 @@ async function loadCustomerClaims() {
 // ==================================
 // SUBMIT NEW CLAIM
 // ==================================
+// SUBMIT NEW CLAIM
+// ==================================
 
 claimForm.addEventListener("submit", async function(event) {
 
@@ -177,38 +179,71 @@ claimForm.addEventListener("submit", async function(event) {
     submitButton.disabled = true;
     message.textContent = "Submitting your claim...";
 
-    const claimNumber =
-        "CLM-" + Date.now() + "-" +
-        Math.floor(Math.random() * 1000);
+    try {
+        // Get the current authenticated session
+        const { data: sessionData, error: sessionError } =
+            await supabaseClient.auth.getSession();
 
-    const { error } = await supabaseClient
-        .from("claims")
-        .insert({
+        if (sessionError || !sessionData.session) {
+            message.textContent = "Your session has expired. Please log in again.";
+            return;
+        }
+
+        const userId = sessionData.session.user.id;
+
+        console.log("Logged-in user ID:", userId);
+        console.log("Current user ID:", currentUser?.id);
+        console.log("Claim status:", "submitted");
+
+        if (currentUser && currentUser.id !== userId) {
+            message.textContent = "Session mismatch. Please log in again.";
+            return;
+        }
+
+        currentUser = sessionData.session.user;
+
+        const claimNumber =
+            "CLM-" + Date.now() + "-" +
+            Math.floor(Math.random() * 1000);
+
+        const claimData = {
             claim_number: claimNumber,
-            customer_id: currentUser.id,
+            customer_id: userId,
             title: category,
             description: description,
             claim_amount: amount,
-            status: "pending"
-        });
+            status: "submitted"
+        };
 
-    submitButton.disabled = false;
+        console.log("Claim data:", claimData);
 
-    if (error) {
-        console.error("Claim submission error:", error);
-        message.textContent =
-            "Unable to submit claim. Please check your database permissions.";
-        return;
+        const { error } = await supabaseClient
+            .from("claims")
+            .insert(claimData);
+
+        if (error) {
+            console.error("Claim submission error:", error);
+            message.textContent = "Error: " + error.message;
+            return;
+        }
+
+        message.textContent = "Your claim was submitted successfully!";
+        claimForm.reset();
+
+        await loadCustomerClaims();
+
+    } catch (error) {
+        console.error("Unexpected claim error:", error);
+        message.textContent = "An unexpected error occurred.";
+
+    } finally {
+        submitButton.disabled = false;
     }
-
-    message.textContent = "Your claim was submitted successfully!";
-
-    claimForm.reset();
-
-    await loadCustomerClaims();
 });
 
-
+// ==================================
+// LOGOUT
+// ==================================
 // ==================================
 // LOGOUT
 // ==================================
@@ -218,15 +253,17 @@ logoutButton.addEventListener("click", async function() {
     const { error } = await supabaseClient.auth.signOut();
 
     if (error) {
-    console.error("Claim submission error:", error);
+        alert("Unable to log out. Please try again.");
+        console.error("Logout error:", error);
+        return;
+    }
 
-    message.textContent = "Error: " + error.message;
+    window.location.replace("index.html");
+});
 
-    submitButton.disabled = false;
-    return;
-}
-
-
+// ==================================
+// INITIALIZE CUSTOMER DASHBOARD
+// ==================================
 // ==================================
 // INITIALIZE CUSTOMER DASHBOARD
 // ==================================

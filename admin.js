@@ -50,7 +50,7 @@ async function checkAdminAccess() {
 
         await supabaseClient.auth.signOut();
 
-        window.location.replace("login.html");
+        window.location.replace("index.html");
 
         return false;
     }
@@ -93,9 +93,11 @@ async function loadDashboardStats() {
         return;
     }
 
-    const pending = claims.filter(
-        claim => (claim.status || "").toLowerCase() === "pending"
-    ).length;
+  const pending = claims.filter(
+    claim => ["submitted", "under_review"].includes(
+        (claim.status || "").toLowerCase()
+    )
+).length;
 
     const approved = claims.filter(
         claim => (claim.status || "").toLowerCase() === "approved"
