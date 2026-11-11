@@ -6,7 +6,7 @@
 const SUPABASE_URL = "https://wqszwijxuiomyrguyhrx.supabase.co";
 
 // Use the same publishable key as your working index.js
-const SUPABASE_PUBLISHABLE_KEY = "YOUR_EXISTING_PUBLISHABLE_KEY";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_1FqMpDgBFBn8oMEi-M5c9g_-wJjQ5z4";
 
 const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
@@ -53,7 +53,7 @@ async function checkCustomerAccess() {
     if (profileError || !profile) {
         alert("Your customer profile could not be found.");
         await supabaseClient.auth.signOut();
-        window.location.replace("indx.html");
+        window.location.replace("index.html");
         return false;
     }
 
@@ -62,7 +62,7 @@ async function checkCustomerAccess() {
         if (profile.role === "admin") {
             window.location.replace("admin.html");
         } else {
-            window.location.replace("indx.html");
+            window.location.replace("index.html");
         }
 
         return false;
@@ -218,13 +218,13 @@ logoutButton.addEventListener("click", async function() {
     const { error } = await supabaseClient.auth.signOut();
 
     if (error) {
-        alert("Unable to log out. Please try again.");
-        console.error(error);
-        return;
-    }
+    console.error("Claim submission error:", error);
 
-    window.location.replace("indx.html");
-});
+    message.textContent = "Error: " + error.message;
+
+    submitButton.disabled = false;
+    return;
+}
 
 
 // ==================================
