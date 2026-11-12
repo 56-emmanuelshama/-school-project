@@ -53,15 +53,16 @@ loginForm.addEventListener("submit", async function(event) {
         }
 
         // 3. Redirect according to role
+        
         if (profile.role === "customer") {
 
             window.location.replace("customer.html");
 
-        } else if (profile.role === "admin") {
+       } else if (profile.role === "admin") {
 
-            window.location.replace("admin.html");
+    window.location.replace("mfa.html");
 
-        } else if (profile.role === "claims_officer") {
+} else if (profile.role === "claims_officer") {
 
             window.location.replace("claims-officer.html");
 

@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Multi-Factor Authentication</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f2f4f7;
+        }
+
+        .mfa-container {
+            width: 100%;
+            max-width: 430px;
+            padding: 30px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #172033;
+        }
+
+        p {
+            color: #555;
+            line-height: 1.5;
+        }
+
+        #qrCode {
+            display: none;
+            width: 220px;
+            height: 220px;
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin: 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 20px;
+            text-align: center;
+            letter-spacing: 5px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 6px;
+            background: #b5121b;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #message {
+            margin-top: 15px;
+            font-size: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .success {
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        #setupInstructions {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="mfa-container">
+
+        <h2>Admin Security Verification</h2>
+
+        <p id="statusText">
+            Preparing your authenticator setup...
+        </p>
+
+        <div id="setupInstructions">
+            <p>Scan this QR code using Google Authenticator.</p>
+
+            <img id="qrCode" alt="Authenticator setup QR code">
+
+            <p>
+                After scanning, enter the six-digit code
+                displayed in your authenticator app.
+            </p>
+        </div>
+
+        <input
+            type="text"
+            id="verificationCode"
+            placeholder="000000"
+            maxlength="6"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+        >
+
+        <button id="verifyButton" disabled>
+            Verify Code
+        </button>
+
+        <div id="message"></div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="MFA.js"></script>
+
+</body>
+</html>

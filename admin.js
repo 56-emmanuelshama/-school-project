@@ -64,6 +64,25 @@ async function checkAdminAccess() {
     return true;
 }
 
+// ==========================================
+// ENFORCE ADMIN MFA (AAL2)
+// ==========================================
+
+const { data: assuranceData, error: assuranceError } =
+    await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+
+if (assuranceError) {
+    console.error("MFA assurance error:", assuranceError);
+    await supabaseClient.auth.signOut();
+    window.location.replace("index.html");
+    return false;
+}
+
+if (assuranceData.currentLevel !== "aal2") {
+    window.location.replace("MFA.html");
+    return false;
+}
+
 
 // ==================================
 // LOAD DASHBOARD STATISTICS
