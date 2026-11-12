@@ -609,6 +609,165 @@ logoutButton.addEventListener("click", async function() {
 });
 
 
+
+// =====================================
+// MULTI-FACTOR AUTHENTICATION (MFA)
+// =====================================
+
+let mfaFactorId = null;
+
+async function loadMfaStatus() {
+    const status = document.getElementById("mfaStatus");
+    const enableButton = document.getElementById("enableMfaButton");
+
+    const { data, error } = await supabaseClient.auth.mfa.listFactors();
+
+    if (error) {
+        status.textContent = "Unable to check MFA status: " + error.message;
+        return;
+    }
+
+    const verifiedFactors = data.totp.filter(
+        factor => factor.status === "verified"
+    );
+
+    if (verifiedFactors.length > 0) {
+        status.textContent = "MFA status: Enabled";
+        enableButton.disabled = true;
+    } else {
+        status.textContent = "MFA status: Not enabled";
+        enableButton.disabled = false;
+    }
+}
+
+
+// Start MFA enrollment
+
+// Start MFA enrollment
+document.getElementById("enableMfaButton")
+    .addEventListener("click", async function() {
+
+        const message = document.getElementById("mfaMessage");
+        const enableButton = document.getElementById("enableMfaButton");
+
+        enableButton.disabled = true;
+        message.textContent = "Preparing MFA setup...";
+
+        try {
+            // Check existing MFA factors
+            const { data: factors, error: listError } =
+                await supabaseClient.auth.mfa.listFactors();
+
+            if (listError) throw listError;
+
+            // Never remove an already verified factor
+            const existingFactor = factors.totp.find(
+                factor =>
+                    factor.friendly_name === "Admin Authenticator" &&
+                    factor.status === "unverified"
+            );
+
+            // Remove incomplete enrollment
+            if (existingFactor) {
+                const { error: removeError } =
+                    await supabaseClient.auth.mfa.unenroll({
+                        factorId: existingFactor.id
+                    });
+
+                if (removeError) throw removeError;
+            }
+
+            // Create a fresh enrollment
+            const { data, error } =
+                await supabaseClient.auth.mfa.enroll({
+                    factorType: "totp",
+                 friendlyName: "Admin Authenticator 2"
+                });
+
+            if (error) throw error;
+
+            mfaFactorId = data.id;
+
+            document.getElementById("mfaQrCode").src =
+                data.totp.qr_code;
+
+            document.getElementById("mfaSetupArea").style.display = "block";
+
+            message.textContent =
+                "Scan the new QR code using an authenticator app.";
+
+        } catch (error) {
+            message.textContent = error.message;
+            enableButton.disabled = false;
+        }
+    });
+
+
+// Verify MFA code
+
+ // =====================================
+ // VERIFY MFA CODE
+ // =====================================
+
+document.getElementById("verifyMfaButton")
+    .addEventListener("click", async function() {
+
+        const code = document.getElementById(
+            "mfaVerificationCode"
+        ).value.trim();
+
+        const message = document.getElementById("mfaMessage");
+        const verifyButton = document.getElementById("verifyMfaButton");
+
+        if (!mfaFactorId) {
+            message.textContent = "Please generate a QR code first.";
+            return;
+        }
+
+        if (!/^\d{6}$/.test(code)) {
+            message.textContent = "Enter a valid six-digit OTP code.";
+            return;
+        }
+
+        verifyButton.disabled = true;
+
+        try {
+            message.textContent = "Verifying your authenticator code...";
+
+            const { data: challenge, error: challengeError } =
+                await supabaseClient.auth.mfa.challenge({
+                    factorId: mfaFactorId
+                });
+
+            if (challengeError) throw challengeError;
+
+            const { error: verifyError } =
+                await supabaseClient.auth.mfa.verify({
+                    factorId: mfaFactorId,
+                    challengeId: challenge.id,
+                    code: code
+                });
+
+            if (verifyError) throw verifyError;
+
+            message.textContent = "MFA successfully enabled!";
+
+            document.getElementById("mfaSetupArea").style.display = "none";
+
+            document.getElementById("mfaVerificationCode").value = "";
+
+            await loadMfaStatus();
+
+        } catch (error) {
+            console.error("MFA verification error:", error);
+            message.textContent = error.message;
+
+        } finally {
+            verifyButton.disabled = false;
+        }
+    });
+
+
 // ==================================
 // INITIALIZE ADMIN DASHBOARD
 // ==================================
@@ -618,12 +777,13 @@ async function initializeDashboard() {
     const authorized = await checkAdminAccess();
 
     if (!authorized) return;
-     await Promise.all([
+    await Promise.all([
     loadDashboardStats(),
     loadRecentClaims(),
     loadUsers(),
     loadClaimsManagement(),
-    loadAuditLogs()
+    loadAuditLogs(),
+    loadMfaStatus()
 ]);
 }
 

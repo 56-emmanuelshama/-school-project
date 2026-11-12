@@ -227,11 +227,58 @@
 </section>
 
 
-            <section id="security" class="content-card placeholder-section">
-                <h2>Security & MFA</h2>
-                <p>Monitor multi-factor authentication and account security.</p>
-                <p class="coming-soon">Security module – Coming next.</p>
-            </section>
+<section id="security" class="content-card placeholder-section">
+    <h2>Security & MFA</h2>
+    <p>Protect your administrator account using Multi-Factor Authentication.</p>
+
+    <div class="mfa-container">
+
+        <h3>Authenticator App Setup</h3>
+
+        <p id="mfaStatus">
+            MFA status: Checking...
+        </p>
+
+        <button type="button" id="enableMfaButton">
+            Enable MFA
+        </button>
+
+        <div id="mfaSetupArea" style="display: none;">
+
+            <h4>1. Scan the QR Code</h4>
+
+            <p>
+                Open Google Authenticator or another compatible
+                authenticator app and scan this QR code.
+            </p>
+
+            <img
+                id="mfaQrCode"
+                alt="MFA QR Code"
+                style="width: 200px; display: block; margin: 15px 0;"
+            >
+
+            <h4>2. Enter Your Verification Code</h4>
+
+            <input
+                type="text"
+                id="mfaVerificationCode"
+                placeholder="Enter 6-digit code"
+                maxlength="6"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+            >
+
+            <button type="button" id="verifyMfaButton">
+                Verify and Enable MFA
+            </button>
+
+        </div>
+
+        <p id="mfaMessage"></p>
+
+    </div>
+</section>
 
 <section id="audit" class="content-card dashboard-section">
 
