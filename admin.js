@@ -68,21 +68,6 @@ async function checkAdminAccess() {
 // ENFORCE ADMIN MFA (AAL2)
 // ==========================================
 
-const { data: assuranceData, error: assuranceError } =
-    await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
-
-if (assuranceError) {
-    console.error("MFA assurance error:", assuranceError);
-    await supabaseClient.auth.signOut();
-    window.location.replace("index.html");
-    return false;
-}
-
-if (assuranceData.currentLevel !== "aal2") {
-    window.location.replace("MFA.html");
-    return false;
-}
-
 
 // ==================================
 // LOAD DASHBOARD STATISTICS
@@ -790,20 +775,36 @@ document.getElementById("verifyMfaButton")
 // ==================================
 // INITIALIZE ADMIN DASHBOARD
 // ==================================
-
 async function initializeDashboard() {
-
+    // First, confirm the user is an administrator
     const authorized = await checkAdminAccess();
-
     if (!authorized) return;
+
+    // Check whether MFA verification is complete
+    const { data: assuranceData, error: assuranceError } =
+        await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+
+    if (assuranceError) {
+        console.error("MFA assurance error:", assuranceError);
+        await supabaseClient.auth.signOut();
+        window.location.replace("index.html");
+        return;
+    }
+
+    // Require MFA level AAL2
+    if (assuranceData.currentLevel !== "aal2") {
+        window.location.replace("mfa.html");
+        return;
+    }
+
+    // Load the administrator dashboard
     await Promise.all([
-    loadDashboardStats(),
-    loadRecentClaims(),
-    loadUsers(),
-    loadClaimsManagement(),
-    loadAuditLogs(),
-    loadMfaStatus()
-]);
+        loadDashboardStats(),
+        loadRecentClaims(),
+        loadUsers(),
+        loadClaimsManagement(),
+        loadAuditLogs()
+    ]);
 }
 
 initializeDashboard();

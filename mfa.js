@@ -33,6 +33,7 @@ let challengeId = null;
 
 async function initializeMFA() {
     try {
+        verifyButton.disabled = true;
         statusText.textContent = "Checking administrator account...";
 
         const { data: sessionData, error: sessionError } =
@@ -61,30 +62,49 @@ async function initializeMFA() {
             throw new Error("Administrator access only.");
         }
 
-        // Check existing MFA factors
+        // Check all existing MFA factors
         const { data: factors, error: factorsError } =
             await supabaseClient.auth.mfa.listFactors();
 
         if (factorsError) throw factorsError;
 
-        const verifiedFactor = factors.totp.find(
-            factor => factor.status === "verified"
+        const allFactors = factors.all || [];
+
+        const verifiedFactor = allFactors.find(
+            factor =>
+                factor.factor_type === "totp" &&
+                factor.status === "verified"
+        );
+
+        const pendingFactor = allFactors.find(
+            factor =>
+                factor.factor_type === "totp" &&
+                factor.status === "unverified"
         );
 
         if (verifiedFactor) {
             factorId = verifiedFactor.id;
 
             setupInstructions.style.display = "none";
+            qrCode.style.display = "none";
+
             statusText.textContent =
-                "Enter the six-digit code from your authenticator app.";
+                "Enter your six-digit authenticator code.";
 
             await createChallenge();
+
+        } else if (pendingFactor) {
+            throw new Error(
+                "An incomplete MFA setup already exists. Please contact the administrator to reset it before starting again."
+            );
+
         } else {
             await enrollAuthenticator();
         }
 
     } catch (error) {
         console.error("MFA initialization error:", error);
+        statusText.textContent = "MFA setup could not be completed.";
         message.textContent = error.message;
         message.className = "error";
     }
@@ -100,21 +120,21 @@ async function enrollAuthenticator() {
     const { data, error } =
         await supabaseClient.auth.mfa.enroll({
             factorType: "totp",
-            friendlyName: "Admin Authenticator 3"
+            friendlyName: "Admin Authenticator"
         });
 
     if (error) throw error;
 
     factorId = data.id;
 
-    // Display the QR code returned by Supabase
+    // Display QR code returned by Supabase
     qrCode.src = data.totp.qr_code;
     qrCode.style.display = "block";
 
     setupInstructions.style.display = "block";
 
     statusText.textContent =
-        "Scan the QR code with Google Authenticator.";
+        "Scan this QR code with Google Authenticator.";
 
     await createChallenge();
 }
@@ -132,7 +152,6 @@ async function createChallenge() {
     if (error) throw error;
 
     challengeId = data.id;
-
     verifyButton.disabled = false;
 }
 
@@ -174,7 +193,8 @@ verifyButton.addEventListener("click", async function () {
         message.textContent = "Verification successful!";
         message.className = "success";
 
-        statusText.textContent = "Access granted. Opening admin dashboard...";
+        statusText.textContent =
+            "Access granted. Opening admin dashboard...";
 
         window.location.replace("admin.html");
 
@@ -186,11 +206,10 @@ verifyButton.addEventListener("click", async function () {
 
         verificationCode.value = "";
 
-        // Generate a fresh challenge for another attempt
         try {
             await createChallenge();
         } catch (challengeError) {
-            console.error(challengeError);
+            console.error("Challenge error:", challengeError);
         }
     }
 
@@ -198,7 +217,7 @@ verifyButton.addEventListener("click", async function () {
 });
 
 // ==========================================
-// START
+// START MFA
 // ==========================================
 
 initializeMFA();
