@@ -56,7 +56,7 @@ loginForm.addEventListener("submit", async function(event) {
         
         if (profile.role === "customer") {
 
-            window.location.replace("customer.html");
+             window.location.replace("customer-mfa.html");
 
        } else if (profile.role === "admin") {
 

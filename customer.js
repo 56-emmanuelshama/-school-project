@@ -32,9 +32,15 @@ let currentUser = null;
 // VERIFY CUSTOMER ACCESS
 // ==================================
 
+// ==================================
+// VERIFY CUSTOMER ACCESS
+// ==================================
+
 async function checkCustomerAccess() {
 
-    const { data, error } = await supabaseClient.auth.getSession();
+    // 1. Check authenticated session
+    const { data, error } =
+        await supabaseClient.auth.getSession();
 
     if (error || !data.session) {
         window.location.replace("index.html");
@@ -43,6 +49,7 @@ async function checkCustomerAccess() {
 
     currentUser = data.session.user;
 
+    // 2. Confirm customer role
     const { data: profile, error: profileError } =
         await supabaseClient
             .from("profiles")
@@ -60,7 +67,7 @@ async function checkCustomerAccess() {
     if (profile.role !== "customer") {
 
         if (profile.role === "admin") {
-            window.location.replace("admin.html");
+            window.location.replace("mfa.html");
         } else {
             window.location.replace("index.html");
         }
@@ -68,11 +75,29 @@ async function checkCustomerAccess() {
         return false;
     }
 
+    // 3. Enforce MFA verification (AAL2)
+    const { data: assuranceData, error: assuranceError } =
+        await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
+
+    if (assuranceError) {
+        console.error("Customer MFA assurance error:", assuranceError);
+        await supabaseClient.auth.signOut();
+        window.location.replace("index.html");
+        return false;
+    }
+
+    if (assuranceData.currentLevel !== "aal2") {
+        window.location.replace("customer-mfa.html");
+        return false;
+    }
+
+    // 4. Display customer information
     customerName.textContent = profile.full_name || "Customer";
     customerEmail.textContent = currentUser.email || "";
 
     return true;
 }
+
 
 
 // ==================================
