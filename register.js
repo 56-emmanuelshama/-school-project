@@ -34,7 +34,7 @@ const { data, error } = await supabaseClient.auth.signUp({
         data: {
             full_name: fullName
         },
-emailRedirectTo: "http://127.0.0.1:5500/index.html"
+emailRedirectTo: 'http://127.0.0.1:5500/customer.html'
     }
 });
 

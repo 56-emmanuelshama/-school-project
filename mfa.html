@@ -7,94 +7,219 @@
     <title>Admin Multi-Factor Authentication</title>
 
     <style>
-        * {
-            box-sizing: border-box;
-        }
+     
+/* =====================================
+   SECURE INSURANCE CLAIMS
+   ADMIN MFA AUTHENTICATION
+   Blue & White Theme
+===================================== */
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            background: #f2f4f7;
-        }
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        .mfa-container {
-            width: 100%;
-            max-width: 430px;
-            padding: 30px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            text-align: center;
-        }
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(
+        135deg,
+        #eaf2ff,
+        #d5e5fa,
+        #f5f9ff
+    );
+    color: #1e293b;
+}
 
-        h2 {
-            margin-top: 0;
-            color: #172033;
-        }
+/* MAIN CONTAINER */
 
-        p {
-            color: #555;
-            line-height: 1.5;
-        }
+.mfa-container {
+    width: 100%;
+    max-width: 450px;
+    padding: 40px 35px;
+    background: #ffffff;
+    border: 1px solid #e2eaf5;
+    border-radius: 18px;
+    box-shadow: 0 15px 45px rgba(15, 55, 105, 0.13);
+    text-align: center;
+}
 
-        #qrCode {
-            display: none;
-            width: 220px;
-            height: 220px;
-            margin: 20px auto;
-            padding: 10px;
-            border: 1px solid #ddd;
-        }
+/* SECURITY ICON */
 
-        input {
-            width: 100%;
-            padding: 14px;
-            margin: 15px 0;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            font-size: 20px;
-            text-align: center;
-            letter-spacing: 5px;
-        }
+.mfa-container::before {
+    content: "🛡️";
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 75px;
+    height: 75px;
+    margin: 0 auto 22px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #0d47a1, #1976d2);
+    font-size: 38px;
+    box-shadow: 0 7px 18px rgba(25, 118, 210, 0.25);
+}
 
-        button {
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 6px;
-            background: #b5121b;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
+/* HEADING */
 
-        button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+h2 {
+    color: #12376a;
+    font-size: 25px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
 
-        #message {
-            margin-top: 15px;
-            font-size: 14px;
-            overflow-wrap: anywhere;
-        }
+p {
+    color: #718096;
+    font-size: 14px;
+    line-height: 1.7;
+}
 
-        .success {
-            color: green;
-        }
+/* SETUP INSTRUCTIONS */
 
-        .error {
-            color: red;
-        }
+#setupInstructions {
+    display: none;
+    margin-top: 22px;
+    padding: 18px;
+    background: #f5f9ff;
+    border: 1px solid #e0eafa;
+    border-radius: 12px;
+}
 
-        #setupInstructions {
-            display: none;
-        }
+/* QR CODE */
+
+#qrCode {
+    display: none;
+    width: 220px;
+    height: 220px;
+    margin: 20px auto;
+    padding: 12px;
+    background: #ffffff;
+    border: 1px solid #d5dfed;
+    border-radius: 10px;
+}
+
+/* VERIFICATION INPUT */
+
+input {
+    width: 100%;
+    padding: 16px;
+    margin: 25px 0 18px;
+    border: 1px solid #d5dfed;
+    border-radius: 9px;
+    background: #f8faff;
+    color: #12376a;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 8px;
+    text-align: center;
+    outline: none;
+    transition: 0.3s ease;
+}
+
+input:focus {
+    border-color: #1976d2;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.12);
+}
+
+input::placeholder {
+    color: #b0bfd2;
+}
+
+/* VERIFY BUTTON */
+
+button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #1565c0, #1976d2);
+    color: #ffffff;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 14px rgba(21, 101, 192, 0.2);
+}
+
+button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0d47a1, #1565c0);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(21, 101, 192, 0.25);
+}
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* STATUS MESSAGE */
+
+#statusText {
+    margin-bottom: 15px;
+    color: #64748b;
+}
+
+/* RESPONSE MESSAGE */
+
+#message {
+    margin-top: 18px;
+    padding: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    border-radius: 8px;
+}
+
+.success {
+    color: #15803d;
+    background: #f0fdf4;
+}
+
+.error {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+/* MOBILE RESPONSIVENESS */
+
+@media (max-width: 480px) {
+    body {
+        padding: 15px;
+    }
+
+    .mfa-container {
+        padding: 32px 22px;
+        border-radius: 15px;
+    }
+
+    h2 {
+        font-size: 22px;
+    }
+
+    .mfa-container::before {
+        width: 65px;
+        height: 65px;
+        font-size: 33px;
+    }
+
+    #qrCode {
+        width: 190px;
+        height: 190px;
+    }
+}
+git
     </style>
 </head>
 
