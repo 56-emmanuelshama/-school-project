@@ -11,8 +11,9 @@ const supabaseClient = window.supabase.createClient(
     SUPABASE_PUBLISHABLE_KEY
 );
 
-
 let currentAdminId = null;
+let mfaFactorId = null;
+
 
 // ==================================
 // PAGE ELEMENTS
@@ -38,7 +39,7 @@ async function checkAdminAccess() {
     }
 
     const user = sessionData.session.user;
-   currentAdminId = user.id;
+    currentAdminId = user.id;
 
     const { data: profile, error: profileError } =
         await supabaseClient
@@ -52,7 +53,6 @@ async function checkAdminAccess() {
         alert("Access denied. Administrator privileges are required.");
 
         await supabaseClient.auth.signOut();
-
         window.location.replace("index.html");
 
         return false;
@@ -64,13 +64,9 @@ async function checkAdminAccess() {
     return true;
 }
 
-// ==========================================
-// ENFORCE ADMIN MFA (AAL2)
-// ==========================================
-
 
 // ==================================
-// LOAD DASHBOARD STATISTICS
+// DASHBOARD STATISTICS
 // ==================================
 
 async function loadDashboardStats() {
@@ -91,6 +87,7 @@ async function loadDashboardStats() {
             .select("status");
 
     if (usersError || claimsError) {
+
         totalUsersElement.textContent = "Error";
         totalClaimsElement.textContent = "Error";
         pendingClaimsElement.textContent = "Error";
@@ -100,11 +97,11 @@ async function loadDashboardStats() {
         return;
     }
 
-  const pending = claims.filter(
-    claim => ["submitted", "under_review"].includes(
-        (claim.status || "").toLowerCase()
-    )
-).length;
+    const pending = claims.filter(claim =>
+        ["submitted", "under_review"].includes(
+            (claim.status || "").toLowerCase()
+        )
+    ).length;
 
     const approved = claims.filter(
         claim => (claim.status || "").toLowerCase() === "approved"
@@ -118,7 +115,7 @@ async function loadDashboardStats() {
 
 
 // ==================================
-// LOAD RECENT CLAIMS
+// RECENT CLAIMS
 // ==================================
 
 async function loadRecentClaims() {
@@ -134,6 +131,7 @@ async function loadRecentClaims() {
     tableBody.replaceChildren();
 
     if (error) {
+
         const row = document.createElement("tr");
         const cell = document.createElement("td");
 
@@ -148,6 +146,7 @@ async function loadRecentClaims() {
     }
 
     if (!claims || claims.length === 0) {
+
         const row = document.createElement("tr");
         const cell = document.createElement("td");
 
@@ -156,6 +155,7 @@ async function loadRecentClaims() {
 
         row.appendChild(cell);
         tableBody.appendChild(row);
+
         return;
     }
 
@@ -198,7 +198,7 @@ async function loadRecentClaims() {
 
 
 // ==================================
-// LOAD AND MANAGE USERS
+// USER MANAGEMENT
 // ==================================
 
 async function loadUsers() {
@@ -215,8 +215,10 @@ async function loadUsers() {
         .order("created_at", { ascending: false });
 
     if (error) {
+
         message.textContent = "Unable to load users.";
         console.error("User loading error:", error);
+
         return;
     }
 
@@ -233,7 +235,6 @@ async function loadUsers() {
         nameCell.textContent = user.full_name || "Unnamed user";
 
         const roleCell = document.createElement("td");
-
         const roleSelect = document.createElement("select");
 
         ["customer", "claims_officer", "admin"].forEach(role => {
@@ -259,7 +260,6 @@ async function loadUsers() {
             : "N/A";
 
         const actionCell = document.createElement("td");
-
         const saveButton = document.createElement("button");
 
         saveButton.textContent = "Save Role";
@@ -298,7 +298,6 @@ async function loadUsers() {
             if (updateError) {
 
                 alert("Unable to update user role.");
-
                 console.error("Role update error:", updateError);
 
                 saveButton.disabled = false;
@@ -312,7 +311,7 @@ async function loadUsers() {
             await loadUsers();
         });
 
-                actionCell.appendChild(saveButton);
+        actionCell.appendChild(saveButton);
 
         row.append(
             nameCell,
@@ -327,15 +326,10 @@ async function loadUsers() {
     message.textContent = `Showing ${users.length} registered users.`;
 }
 
-// ==================================
-// REFRESH USERS
-// ==================================
 
-document.getElementById("refreshUsersButton")
-    .addEventListener("click", loadUsers);
- // ==================================
- // CLAIMS MANAGEMENT
- // ==================================
+// ==================================
+// CLAIMS MANAGEMENT
+// ==================================
 
 async function loadClaimsManagement() {
 
@@ -347,12 +341,24 @@ async function loadClaimsManagement() {
 
     const { data: claims, error } = await supabaseClient
         .from("claims")
-        .select("id, claim_number, customer_id, title, claim_amount, status, created_at")
+        .select(`
+            id,
+            claim_number,
+            customer_id,
+            title,
+            claim_amount,
+            processing_fee,
+            payment_status,
+            status,
+            created_at
+        `)
         .order("created_at", { ascending: false });
 
     if (error) {
+
         message.textContent = "Unable to load claims.";
         console.error("Claims management error:", error);
+
         return;
     }
 
@@ -371,13 +377,63 @@ async function loadClaimsManagement() {
             return cell;
         }
 
+        // Claim number
         const claimNumberCell = createCell(claim.claim_number);
+
+        // Customer ID
         const customerCell = createCell(claim.customer_id);
+
+        // Claim category/title
         const titleCell = createCell(claim.title);
 
+        // Original claim amount (not the processing fee)
         const amountCell = createCell(
             Number(claim.claim_amount || 0).toLocaleString()
         );
+
+
+        // ==================================
+        // PROCESSING FEE INPUT
+        // ==================================
+
+        const feeCell = document.createElement("td");
+
+        const feeInput = document.createElement("input");
+
+        feeInput.type = "number";
+        feeInput.min = "1";
+        feeInput.max = "250000";
+        feeInput.step = "1";
+        feeInput.placeholder = "Enter fee";
+        feeInput.style.width = "110px";
+
+        feeInput.value = claim.processing_fee ?? "";
+
+        feeCell.appendChild(feeInput);
+
+
+        // ==================================
+        // PAYMENT STATUS
+        // ==================================
+
+        const paymentCell = document.createElement("td");
+
+        const paymentBadge = document.createElement("span");
+
+        const paymentStatus = (
+            claim.payment_status || "unpaid"
+        ).toLowerCase();
+
+        paymentBadge.textContent = paymentStatus.replace("_", " ");
+
+        paymentBadge.className = "status " + paymentStatus;
+
+        paymentCell.appendChild(paymentBadge);
+
+
+        // ==================================
+        // CLAIM STATUS
+        // ==================================
 
         const statusCell = document.createElement("td");
         const statusSelect = document.createElement("select");
@@ -391,7 +447,9 @@ async function loadClaimsManagement() {
         ];
 
         statuses.forEach(status => {
+
             const option = document.createElement("option");
+
             option.value = status;
             option.textContent = status.replace("_", " ");
 
@@ -404,19 +462,87 @@ async function loadClaimsManagement() {
 
         statusCell.appendChild(statusSelect);
 
+
+        // ==================================
+        // DATE SUBMITTED
+        // ==================================
+
         const dateCell = createCell(
             claim.created_at
                 ? new Date(claim.created_at).toLocaleDateString()
                 : "N/A"
         );
 
+
+        // ==================================
+        // ACTION BUTTONS
+        // ==================================
+
         const actionCell = document.createElement("td");
-        const saveButton = document.createElement("button");
 
-        saveButton.type = "button";
-        saveButton.textContent = "Update";
+        // Save processing fee button
+        const saveFeeButton = document.createElement("button");
 
-        saveButton.addEventListener("click", async () => {
+        saveFeeButton.type = "button";
+        saveFeeButton.textContent = "Save Fee";
+
+        saveFeeButton.addEventListener("click", async () => {
+
+            const feeValue = feeInput.value.trim();
+            const fee = Number(feeValue);
+
+            if (!feeValue || !Number.isInteger(fee) || fee < 1 || fee > 250000) {
+
+                alert("Enter a valid processing fee between KSh 1 and KSh 250,000.");
+                feeInput.focus();
+
+                return;
+            }
+
+            if (
+                paymentStatus === "paid" &&
+                Number(claim.processing_fee) !== fee
+            ) {
+                alert("This claim has already been paid. Do not change its processing fee.");
+                return;
+            }
+
+            saveFeeButton.disabled = true;
+            saveFeeButton.textContent = "Saving...";
+
+            const { error: feeError } = await supabaseClient
+                .from("claims")
+                .update({
+                    processing_fee: fee,
+                    updated_at: new Date().toISOString()
+                })
+                .eq("id", claim.id);
+
+            if (feeError) {
+
+                alert("Unable to save processing fee. Check administrator database permissions.");
+
+                console.error("Processing fee update error:", feeError);
+
+                saveFeeButton.disabled = false;
+                saveFeeButton.textContent = "Save Fee";
+
+                return;
+            }
+
+            alert("Processing fee saved successfully!");
+
+            await loadClaimsManagement();
+
+        });
+
+        // Update claim status button
+        const updateStatusButton = document.createElement("button");
+
+        updateStatusButton.type = "button";
+        updateStatusButton.textContent = "Update Status";
+
+        updateStatusButton.addEventListener("click", async () => {
 
             const newStatus = statusSelect.value;
 
@@ -425,8 +551,8 @@ async function loadClaimsManagement() {
                 return;
             }
 
-            saveButton.disabled = true;
-            saveButton.textContent = "Updating...";
+            updateStatusButton.disabled = true;
+            updateStatusButton.textContent = "Updating...";
 
             const { error: updateError } = await supabaseClient
                 .from("claims")
@@ -437,11 +563,14 @@ async function loadClaimsManagement() {
                 .eq("id", claim.id);
 
             if (updateError) {
-                alert("Unable to update claim status.");
-                console.error("Claim update error:", updateError);
 
-                saveButton.disabled = false;
-                saveButton.textContent = "Update";
+                alert("Unable to update claim status.");
+
+                console.error("Claim status update error:", updateError);
+
+                updateStatusButton.disabled = false;
+                updateStatusButton.textContent = "Update Status";
+
                 return;
             }
 
@@ -454,13 +583,19 @@ async function loadClaimsManagement() {
             ]);
         });
 
-        actionCell.appendChild(saveButton);
+        actionCell.append(
+            saveFeeButton,
+            document.createElement("br"),
+            updateStatusButton
+        );
 
         row.append(
             claimNumberCell,
             customerCell,
             titleCell,
             amountCell,
+            feeCell,
+            paymentCell,
             statusCell,
             dateCell,
             actionCell
@@ -472,20 +607,9 @@ async function loadClaimsManagement() {
     message.textContent = `Showing ${claims.length} insurance claims.`;
 }
 
-document.getElementById("refreshClaimsButton")
-    .addEventListener("click", async function() {
-        await Promise.all([
-            loadClaimsManagement(),
-            loadDashboardStats(),
-            loadRecentClaims()
-        ]);
-    });
-// ==================================
-// REFRESH CLAIMS
-// ==================================
 
 // ==================================
-// LOAD AUDIT LOGS
+// AUDIT LOGS
 // ==================================
 
 async function loadAuditLogs() {
@@ -503,8 +627,10 @@ async function loadAuditLogs() {
         .limit(100);
 
     if (error) {
+
         message.textContent = "Unable to load audit logs.";
         console.error("Audit log error:", error);
+
         return;
     }
 
@@ -543,18 +669,25 @@ async function loadAuditLogs() {
 
 
 // ==================================
-// REFRESH AUDIT LOGS
-// ==================================
-
-document.getElementById("refreshAuditButton")
-    .addEventListener("click", loadAuditLogs);
-
-// ==================================
-// REFRESH USERS
+// REFRESH BUTTONS
 // ==================================
 
 document.getElementById("refreshUsersButton")
     .addEventListener("click", loadUsers);
+
+document.getElementById("refreshClaimsButton")
+    .addEventListener("click", async () => {
+
+        await Promise.all([
+            loadClaimsManagement(),
+            loadDashboardStats(),
+            loadRecentClaims()
+        ]);
+    });
+
+document.getElementById("refreshAuditButton")
+    .addEventListener("click", loadAuditLogs);
+
 
 // ==================================
 // SIDEBAR NAVIGATION
@@ -604,8 +737,10 @@ logoutButton.addEventListener("click", async function() {
     const { error } = await supabaseClient.auth.signOut();
 
     if (error) {
+
         alert("Unable to sign out. Please try again.");
         console.error(error);
+
         return;
     }
 
@@ -613,20 +748,19 @@ logoutButton.addEventListener("click", async function() {
 });
 
 
-
 // =====================================
 // MULTI-FACTOR AUTHENTICATION (MFA)
 // =====================================
 
-let mfaFactorId = null;
-
 async function loadMfaStatus() {
+
     const status = document.getElementById("mfaStatus");
     const enableButton = document.getElementById("enableMfaButton");
 
     const { data, error } = await supabaseClient.auth.mfa.listFactors();
 
     if (error) {
+
         status.textContent = "Unable to check MFA status: " + error.message;
         return;
     }
@@ -636,18 +770,22 @@ async function loadMfaStatus() {
     );
 
     if (verifiedFactors.length > 0) {
+
         status.textContent = "MFA status: Enabled";
         enableButton.disabled = true;
+
     } else {
+
         status.textContent = "MFA status: Not enabled";
         enableButton.disabled = false;
     }
 }
 
 
-// Start MFA enrollment
+// =====================================
+// START MFA ENROLLMENT
+// =====================================
 
-// Start MFA enrollment
 document.getElementById("enableMfaButton")
     .addEventListener("click", async function() {
 
@@ -658,21 +796,20 @@ document.getElementById("enableMfaButton")
         message.textContent = "Preparing MFA setup...";
 
         try {
-            // Check existing MFA factors
+
             const { data: factors, error: listError } =
                 await supabaseClient.auth.mfa.listFactors();
 
             if (listError) throw listError;
 
-            // Never remove an already verified factor
             const existingFactor = factors.totp.find(
                 factor =>
                     factor.friendly_name === "Admin Authenticator" &&
                     factor.status === "unverified"
             );
 
-            // Remove incomplete enrollment
             if (existingFactor) {
+
                 const { error: removeError } =
                     await supabaseClient.auth.mfa.unenroll({
                         factorId: existingFactor.id
@@ -681,11 +818,10 @@ document.getElementById("enableMfaButton")
                 if (removeError) throw removeError;
             }
 
-            // Create a fresh enrollment
             const { data, error } =
                 await supabaseClient.auth.mfa.enroll({
                     factorType: "totp",
-                 friendlyName: "Admin Authenticator 2"
+                    friendlyName: "Admin Authenticator 2"
                 });
 
             if (error) throw error;
@@ -701,17 +837,16 @@ document.getElementById("enableMfaButton")
                 "Scan the new QR code using an authenticator app.";
 
         } catch (error) {
+
             message.textContent = error.message;
             enableButton.disabled = false;
         }
     });
 
 
-// Verify MFA code
-
- // =====================================
- // VERIFY MFA CODE
- // =====================================
+// =====================================
+// VERIFY MFA CODE
+// =====================================
 
 document.getElementById("verifyMfaButton")
     .addEventListener("click", async function() {
@@ -724,11 +859,13 @@ document.getElementById("verifyMfaButton")
         const verifyButton = document.getElementById("verifyMfaButton");
 
         if (!mfaFactorId) {
+
             message.textContent = "Please generate a QR code first.";
             return;
         }
 
         if (!/^\d{6}$/.test(code)) {
+
             message.textContent = "Enter a valid six-digit OTP code.";
             return;
         }
@@ -736,6 +873,7 @@ document.getElementById("verifyMfaButton")
         verifyButton.disabled = true;
 
         try {
+
             message.textContent = "Verifying your authenticator code...";
 
             const { data: challenge, error: challengeError } =
@@ -763,10 +901,12 @@ document.getElementById("verifyMfaButton")
             await loadMfaStatus();
 
         } catch (error) {
+
             console.error("MFA verification error:", error);
             message.textContent = error.message;
 
         } finally {
+
             verifyButton.disabled = false;
         }
     });
@@ -775,35 +915,39 @@ document.getElementById("verifyMfaButton")
 // ==================================
 // INITIALIZE ADMIN DASHBOARD
 // ==================================
+
 async function initializeDashboard() {
-    // First, confirm the user is an administrator
+
     const authorized = await checkAdminAccess();
+
     if (!authorized) return;
 
-    // Check whether MFA verification is complete
     const { data: assuranceData, error: assuranceError } =
         await supabaseClient.auth.mfa.getAuthenticatorAssuranceLevel();
 
     if (assuranceError) {
+
         console.error("MFA assurance error:", assuranceError);
+
         await supabaseClient.auth.signOut();
         window.location.replace("index.html");
+
         return;
     }
 
-    // Require MFA level AAL2
     if (assuranceData.currentLevel !== "aal2") {
+
         window.location.replace("mfa.html");
         return;
     }
 
-    // Load the administrator dashboard
     await Promise.all([
         loadDashboardStats(),
         loadRecentClaims(),
         loadUsers(),
         loadClaimsManagement(),
-        loadAuditLogs()
+        loadAuditLogs(),
+        loadMfaStatus()
     ]);
 }
 

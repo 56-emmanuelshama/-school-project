@@ -186,13 +186,13 @@
     <p id="userManagementMessage"></p>
 </section>
 
-            <
+ 
 <section id="claims" class="content-card dashboard-section">
 
     <div class="section-heading">
         <div>
             <h2>Claims Management</h2>
-            <p>Review and manage insurance claims submitted by customers.</p>
+            <p>Review claims, assign processing fees and monitor customer payments.</p>
         </div>
 
         <button id="refreshClaimsButton" type="button">
@@ -207,8 +207,10 @@
                     <th>Claim Number</th>
                     <th>Customer ID</th>
                     <th>Claim Type</th>
-                    <th>Amount (KSh)</th>
-                    <th>Status</th>
+                    <th>Claim Amount (KSh)</th>
+                    <th>Processing Fee (KSh)</th>
+                    <th>Payment Status</th>
+                    <th>Claim Status</th>
                     <th>Date Submitted</th>
                     <th>Action</th>
                 </tr>
@@ -216,7 +218,7 @@
 
             <tbody id="claimsManagementTable">
                 <tr>
-                    <td colspan="7">Loading claims...</td>
+                    <td colspan="9">Loading claims...</td>
                 </tr>
             </tbody>
         </table>
